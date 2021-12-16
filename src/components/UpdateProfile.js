@@ -2,37 +2,49 @@ import React, { useRef, useState } from "react";
 import { Card, Button, Form, Alert } from "react-bootstrap";
 import { Link, useHistory } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-function Signup() {
+function UpdateProfile() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  const { signup, currentUser } = useAuth();
+  const { currentUser, updateEmail, updatePassword } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const history = useHistory();
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault(); //disables clearing/refreshing the form
 
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
       return setError("Password do not match");
     }
 
-    try {
-      setError("");
-      setLoading(true); //prevents the user from multiple clicks of the sign up button and create multiple accounts
-      await signup(emailRef.current.value, passwordRef.current.value);
-      history.push("/"); //goes to dashboard
-    } catch {
-      setError("failed to create an account");
+    const promises = [];
+
+    setLoading(true);
+    setError("");
+    if (emailRef.current.value !== currentUser.email) {
+      promises.push(updateEmail(emailRef.current.value));
     }
-    setLoading(false);
+    if (passwordRef.current.value) {
+      promises.push(updatePassword(passwordRef.current.value));
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        history.push("/");
+      })
+      .catch(() => {
+        setError("failed to update account");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   return (
     <>
       <Card>
         <Card.Body>
-          <h2 className="text-center mb-4">Sign Up</h2>
+          <h2 className="text-center mb-4">Update Profile</h2>
           {
             //currentUser.email //for testting purpuses
           }
@@ -40,27 +52,42 @@ function Signup() {
           <Form onSubmit={handleSubmit}>
             <Form.Group id="email">
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" ref={emailRef} required />
+              <Form.Control
+                type="email"
+                ref={emailRef}
+                required
+                defaultValue={currentUser.email}
+              />
             </Form.Group>
             <Form.Group id="password">
               <Form.Label>Password</Form.Label>
-              <Form.Control type="password" ref={passwordRef} required />
+              <Form.Control
+                type="password"
+                ref={passwordRef}
+                required
+                placeholder="leave blank to keep the same"
+              />
             </Form.Group>
             <Form.Group id="password-confirm">
               <Form.Label>Password Confirmation</Form.Label>
-              <Form.Control type="password" ref={passwordConfirmRef} required />
+              <Form.Control
+                type="password"
+                ref={passwordConfirmRef}
+                required
+                placeholder="leave blank to keep the same"
+              />
             </Form.Group>
             <Button disabled={loading} className="w-100 mt-2" type="submit">
-              Sign Up
+              Update
             </Button>
           </Form>
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">
-        Already have an account? <Link to="/login">Login</Link>
+        <Link to="/">Cancel</Link>
       </div>
     </>
   );
 }
 
-export default Signup;
+export default UpdateProfile;

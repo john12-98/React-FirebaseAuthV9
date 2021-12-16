@@ -2,28 +2,23 @@ import React, { useRef, useState } from "react";
 import { Card, Button, Form, Alert } from "react-bootstrap";
 import { Link, useHistory } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-function Signup() {
+function Login() {
   const emailRef = useRef();
   const passwordRef = useRef();
-  const passwordConfirmRef = useRef();
-  const { signup, currentUser } = useAuth();
+  const { currentUser, login } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const history = useHistory();
   async function handleSubmit(e) {
     e.preventDefault(); //disables clearing/refreshing the form
 
-    if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError("Password do not match");
-    }
-
     try {
       setError("");
       setLoading(true); //prevents the user from multiple clicks of the sign up button and create multiple accounts
-      await signup(emailRef.current.value, passwordRef.current.value);
+      await login(emailRef.current.value, passwordRef.current.value);
       history.push("/"); //goes to dashboard
     } catch {
-      setError("failed to create an account");
+      setError("failed to sign in");
     }
     setLoading(false);
   }
@@ -32,7 +27,7 @@ function Signup() {
     <>
       <Card>
         <Card.Body>
-          <h2 className="text-center mb-4">Sign Up</h2>
+          <h2 className="text-center mb-4">Log In</h2>
           {
             //currentUser.email //for testting purpuses
           }
@@ -46,21 +41,21 @@ function Signup() {
               <Form.Label>Password</Form.Label>
               <Form.Control type="password" ref={passwordRef} required />
             </Form.Group>
-            <Form.Group id="password-confirm">
-              <Form.Label>Password Confirmation</Form.Label>
-              <Form.Control type="password" ref={passwordConfirmRef} required />
-            </Form.Group>
+
             <Button disabled={loading} className="w-100 mt-2" type="submit">
-              Sign Up
+              Login
             </Button>
           </Form>
+          <div className="w-100 text-center mt-2">
+            <Link to="/forgot-password">Forgot Password?</Link>
+          </div>
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">
-        Already have an account? <Link to="/login">Login</Link>
+        Need an account?<Link to="/signup">Sign up</Link>
       </div>
     </>
   );
 }
 
-export default Signup;
+export default Login;
