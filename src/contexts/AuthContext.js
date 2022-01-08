@@ -1,4 +1,13 @@
 import React, { useContext, useState, useEffect } from "react";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateEmail,
+  updatePassword,
+  signOut,
+} from "firebase/auth";
 import { auth } from "../firebase";
 const AuthContext = React.createContext();
 
@@ -10,32 +19,33 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState();
   const [loading, setLoading] = useState(true);
   function signup(email, password) {
-    return auth.createUserWithEmailAndPassword(email, password); //returns a promise
+    return createUserWithEmailAndPassword(auth, email, password); //returns a promise
   }
 
   function login(email, password) {
-    return auth.signInWithEmailAndPassword(email, password);
+    return signInWithEmailAndPassword(auth, email, password);
   }
 
   function logout() {
-    return auth.signOut();
+    return signOut(auth);
   }
 
   function resetPassword(email) {
-    return auth.sendPasswordResetEmail(email);
+    return sendPasswordResetEmail(auth, email);
   }
 
-  function updateEmail(email) {
-    return currentUser.updateEmail(email);
+  function updateEmailLocal(email) {
+    return updateEmail(auth.currentUser, email);
   }
-  function updatePassword(password) {
-    return currentUser.updatePassword(password);
+  function updatePasswordLocal(password) {
+    return updatePassword(auth.currentUser, password);
   }
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user); //what is user? object or....???
       setLoading(false);
     });
+
     return unsubscribe; //this is a method returned from onAuthStateChanged that is used to unsubscribe from the listener/event
   }, []);
 
@@ -45,8 +55,8 @@ export function AuthProvider({ children }) {
     signup,
     logout,
     resetPassword,
-    updateEmail,
-    updatePassword,
+    updateEmailLocal,
+    updatePasswordLocal,
   };
 
   return (
